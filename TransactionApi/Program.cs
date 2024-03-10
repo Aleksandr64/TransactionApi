@@ -1,3 +1,8 @@
+using Microsoft.EntityFrameworkCore;
+using TransactionApi.Application.Services;
+using TransactionApi.Application.Services.Interface;
+using TransactionApi.Database;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -6,9 +11,16 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddDbContext<TransactionDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+});
+
+builder.Services.AddSingleton<DapperContext>();
+builder.Services.AddScoped<ITransactionService, TransactionService>();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
