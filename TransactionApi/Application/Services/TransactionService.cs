@@ -1,10 +1,14 @@
-﻿using System.Globalization;
+﻿using System.Data;
 using System.Text.RegularExpressions;
+using ClosedXML.Excel;
 using GeoTimeZone;
+using MediatR;
+using Microsoft.IdentityModel.Tokens;
 using TimeZoneConverter;
+using TransactionApi.Application.Commands;
 using TransactionApi.Application.Mapper;
+using TransactionApi.Application.Queries;
 using TransactionApi.Application.Services.Interface;
-using TransactionApi.Domain.DTOs;
 using TransactionApi.Domain.Model;
 using TransactionApi.Domain.ResultModels;
 
@@ -12,12 +16,18 @@ namespace TransactionApi.Application.Services;
 
 public class TransactionService : ITransactionService
 {
+    private readonly IMediator _mediator;
+
+    public TransactionService(IMediator mediator)
+    {
+        _mediator = mediator;
+    }
     public async Task<Result<string>> AddCsvFile(IFormFile file)
     {
-        var list = new List<Transaction>();
+        var transactions = new List<Transaction>();
         using var reader = new StreamReader(file.OpenReadStream());
         await reader.ReadLineAsync();
-        while (reader.ReadLine() is { } line)
+        while (await reader.ReadLineAsync() is { } line)
         {
             string pattern = @",(?=(?:[^""]*""[^""]*"")*[^""]*$)";
             
@@ -33,9 +43,54 @@ public class TransactionService : ITransactionService
             
             entity.TransactionDate = TimeZoneInfo.ConvertTime(entity.TransactionDate, timeZone);
             
-            list.Add(entity);
+            transactions.Add(entity);
+        }
+        if (transactions.IsNullOrEmpty())
+        {
+            return new BadRequestResult<string>("Error! Failed reading file");
         }
 
+        foreach (var transaction in transactions)
+        {
+            var result = await _mediator.Send(new GetTransactionByIdQuery(transaction.TransactionId));
+            if (result == null)
+            {
+                await _mediator.Send(new AddTransactionCommand(transaction));
+            } else
+            {
+                await _mediator.Send(new UpdateTransactionCommand(transaction));
+            }
+        }
         return new SuccessResult<string>(null);
+    }
+
+    public async Task<byte[]> ExportTransactionInExel()
+    {
+        var result = await _mediator.Send(new GetAllTransactionQuery());
+
+        var dataTable = new DataTable();
+        dataTable.Columns.AddRange(new DataColumn[]
+        {
+            new DataColumn("Name"),
+            new DataColumn("Email"),
+            new DataColumn("Amount"),
+            new DataColumn("TransactionDate")
+        });
+
+        foreach (var item in result)
+        {
+            dataTable.Rows.Add(item.Name, item.Email, item.Amount, item.TransactionDate.DateTime);
+        }
+
+        using (var wb = new XLWorkbook())
+        {
+            var ws = wb.Worksheets.Add(dataTable, "Transaction");
+
+            using (var stream = new MemoryStream())
+            {
+                wb.SaveAs(stream);
+                return stream.ToArray();
+            }
+        }
     }
 }

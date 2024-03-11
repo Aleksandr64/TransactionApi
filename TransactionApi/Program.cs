@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using TransactionApi.Application.Services;
 using TransactionApi.Application.Services.Interface;
@@ -15,6 +16,8 @@ builder.Services.AddDbContext<TransactionDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
+
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(Assembly.GetExecutingAssembly()));
 
 builder.Services.AddSingleton<DapperContext>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
