@@ -17,6 +17,13 @@ public class TransactionController : BaseApiController
     {
         _transactionService = transactionService;
     }
+
+    [HttpGet]
+    public async Task<ActionResult> ExportTransactionInExel()
+    {
+        var file = await _transactionService.ExportTransactionInExel();
+        return File(file, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Transaction.xlsx");
+    }
     
     [HttpPost]
     public async Task<IActionResult> Upload(IFormFile file)
