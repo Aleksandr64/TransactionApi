@@ -5,5 +5,6 @@ public enum ResultTypesEnum
 {
     Success,
     NotFound,
-    BadRequest
+    BadRequest,
+    File
 }
