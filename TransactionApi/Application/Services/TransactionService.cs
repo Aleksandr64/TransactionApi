@@ -9,6 +9,7 @@ using TransactionApi.Application.Commands;
 using TransactionApi.Application.Mapper;
 using TransactionApi.Application.Queries;
 using TransactionApi.Application.Services.Interface;
+using TransactionApi.Domain.DTOs;
 using TransactionApi.Domain.Model;
 using TransactionApi.Domain.ResultModels;
 
@@ -64,7 +65,7 @@ public class TransactionService : ITransactionService
         return new SuccessResult<string>(null);
     }
 
-    public async Task<byte[]> ExportTransactionInExel()
+    public async Task<Result<FileResponse>> ExportTransactionInExel()
     {
         var result = await _mediator.Send(new GetAllTransactionQuery());
 
@@ -82,6 +83,12 @@ public class TransactionService : ITransactionService
             dataTable.Rows.Add(item.Name, item.Email, item.Amount, item.TransactionDate.DateTime);
         }
 
+        var fileResponse = new FileResponse
+        {
+            ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            FileName = "Transaction.xlsx"
+        };
+
         using (var wb = new XLWorkbook())
         {
             var ws = wb.Worksheets.Add(dataTable, "Transaction");
@@ -89,8 +96,23 @@ public class TransactionService : ITransactionService
             using (var stream = new MemoryStream())
             {
                 wb.SaveAs(stream);
-                return stream.ToArray();
+                fileResponse.Content = stream.ToArray();
             }
         }
+
+        return new FileResult<FileResponse>(fileResponse);
+    }
+
+    public async Task<Result<IEnumerable<TransactionResponse>>> GetTransactionByData(int? year, int? month, int? timeZoneOffsetInMinutes)
+    {
+        var result = await _mediator.Send(new GetTransactionByDataQuery(year, month, timeZoneOffsetInMinutes));
+
+        var transactionResponse = new List<TransactionResponse>();
+        foreach (var item in result)
+        {
+            transactionResponse.Add(item.MapTransactionToResponse());
+        }
+
+        return new SuccessResult<IEnumerable<TransactionResponse>>(transactionResponse);
     }
 }

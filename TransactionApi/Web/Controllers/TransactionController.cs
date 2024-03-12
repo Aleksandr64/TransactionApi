@@ -1,10 +1,6 @@
-﻿using System.Globalization;
-using System.Text.RegularExpressions;
-using GeoTimeZone;
-using Microsoft.AspNetCore.Mvc;
-using TimeZoneConverter;
+﻿using Microsoft.AspNetCore.Mvc;
 using TransactionApi.Application.Services.Interface;
-using TransactionApi.Domain.DTOs;
+using TransactionApi.Web.Attribute;
 using TransactionApi.Web.Helpers;
 
 namespace TransactionApi.Web.Controllers;
@@ -12,17 +8,24 @@ namespace TransactionApi.Web.Controllers;
 public class TransactionController : BaseApiController
 {
     private readonly ITransactionService _transactionService;
-
-    public TransactionController(ITransactionService transactionService)
+    public TransactionController(ITransactionService transactionService, IHttpContextAccessor contextAccessor)
     {
         _transactionService = transactionService;
     }
 
     [HttpGet]
-    public async Task<ActionResult> ExportTransactionInExel()
+    public async Task<IActionResult> ExportTransactionInExel()
     {
-        var file = await _transactionService.ExportTransactionInExel();
-        return File(file, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Transaction.xlsx");
+        var result = await _transactionService.ExportTransactionInExel();
+        return this.GetResponse(result);
+    }
+
+    [HttpGet]
+    [TimeZoneHeader]
+    public async Task<IActionResult> GetTransaction(int? year, int? month, int? timeZoneOffsetInMinutes)
+    {
+        var result = await _transactionService.GetTransactionByData(year, month, timeZoneOffsetInMinutes);
+        return this.GetResponse(result);
     }
     
     [HttpPost]
@@ -31,13 +34,4 @@ public class TransactionController : BaseApiController
         var result = await _transactionService.AddCsvFile(file);
         return this.GetResponse(result);
     }
-    
-    /*[HttpPost]
-    public IActionResult UploadCsvLibrary(IFormFile file)
-    {
-        var csvHelper = new CSVHelper();
-        var list = csvHelper.GetCsvData(file);
-        return Ok(list);
-    }*/
-    
 }
