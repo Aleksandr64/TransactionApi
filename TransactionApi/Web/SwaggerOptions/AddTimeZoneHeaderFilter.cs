@@ -1,22 +1,30 @@
 ﻿using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using TransactionApi.Web.Attribute;
 
 namespace TransactionApi.Web.SwaggerOptions;
 
 public class AddTimeZoneHeaderFilter : IOperationFilter
 {
+    /// <inheritdoc />
     public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
-        if (operation.Parameters == null)
+        var hasTimeZoneHeaderAttribute = context.ApiDescription.ActionDescriptor.EndpointMetadata
+            .Any(em => em is TimeZoneHeaderAttribute);
+
+        if (hasTimeZoneHeaderAttribute)
         {
-            operation.Parameters = new List<OpenApiParameter>();
+            if (operation.Parameters == null)
+            {
+                operation.Parameters = new List<OpenApiParameter>();
+            }
+            operation.Parameters.Add(new OpenApiParameter
+            {
+                Name = "Time-Zone",
+                In = ParameterLocation.Header,
+                Description = "Client's Time Zone",
+                Required = false
+            });
         }
-        operation.Parameters.Add(new OpenApiParameter
-        {
-            Name = "Time-Zone",
-            In = ParameterLocation.Header,
-            Description = "Client's Time Zone",
-            Required = false 
-        });
     }
 }

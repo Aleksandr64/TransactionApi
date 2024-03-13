@@ -8,5 +8,5 @@ public interface ITransactionService
 {
     public Task<Result<string>> AddCsvFile(IFormFile file);
     public Task<Result<FileResponse>> ExportTransactionInExel();
-    public Task<Result<IEnumerable<TransactionResponse>>> GetTransactionByData(int? year, int? month, int? timeZoneOffsetInMinutes);
+    public Task<Result<IEnumerable<TransactionResponse>>> GetTransactionByData(int? year, int? month, string? timeZone);
 }

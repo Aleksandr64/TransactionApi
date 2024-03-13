@@ -9,6 +9,7 @@ using TransactionApi.Application.Commands;
 using TransactionApi.Application.Mapper;
 using TransactionApi.Application.Queries;
 using TransactionApi.Application.Services.Interface;
+using TransactionApi.Application.Validations;
 using TransactionApi.Domain.DTOs;
 using TransactionApi.Domain.Model;
 using TransactionApi.Domain.ResultModels;
@@ -23,6 +24,8 @@ public class TransactionService : ITransactionService
     {
         _mediator = mediator;
     }
+
+    /// <inheritdoc />
     public async Task<Result<string>> AddCsvFile(IFormFile file)
     {
         var transactions = new List<Transaction>();
@@ -33,22 +36,26 @@ public class TransactionService : ITransactionService
             string pattern = @",(?=(?:[^""]*""[^""]*"")*[^""]*$)";
             
             var fields = Regex.Split(line, pattern);
-            
             var entity = fields.MapTransactionFromCsv();
+            
+            var validationResult = await new AddTransactionValidator().ValidateAsync(entity);
+            if (!validationResult.IsValid)
+            {
+                //TODO 207 Status code
+                continue;
+            }
             
             var location = entity.ClientLocation.Split(',');
             
             string tz = TimeZoneLookup.GetTimeZone(double.Parse(location[0]), double.Parse(location[1])).Result;
-            
             TimeZoneInfo timeZone = TZConvert.GetTimeZoneInfo(tz);
-            
             entity.TransactionDate = TimeZoneInfo.ConvertTime(entity.TransactionDate, timeZone);
             
             transactions.Add(entity);
         }
         if (transactions.IsNullOrEmpty())
         {
-            return new BadRequestResult<string>("Error! Failed reading file");
+            return new BadRequestResult<string>("Error! Failed reading file or file Empty");
         }
 
         foreach (var transaction in transactions)
@@ -57,7 +64,8 @@ public class TransactionService : ITransactionService
             if (result == null)
             {
                 await _mediator.Send(new AddTransactionCommand(transaction));
-            } else
+            }
+            else
             {
                 await _mediator.Send(new UpdateTransactionCommand(transaction));
             }
@@ -65,6 +73,7 @@ public class TransactionService : ITransactionService
         return new SuccessResult<string>(null);
     }
 
+    /// <inheritdoc />
     public async Task<Result<FileResponse>> ExportTransactionInExel()
     {
         var result = await _mediator.Send(new GetAllTransactionQuery());
@@ -103,9 +112,16 @@ public class TransactionService : ITransactionService
         return new FileResult<FileResponse>(fileResponse);
     }
 
-    public async Task<Result<IEnumerable<TransactionResponse>>> GetTransactionByData(int? year, int? month, int? timeZoneOffsetInMinutes)
+    /// <inheritdoc />
+    public async Task<Result<IEnumerable<TransactionResponse>>> GetTransactionByData(int? year, int? month, string? timeZone)
     {
-        var result = await _mediator.Send(new GetTransactionByDataQuery(year, month, timeZoneOffsetInMinutes));
+        int? offsetMinutes = null;
+        if (!timeZone.IsNullOrEmpty())
+        {
+            TimeZoneInfo gmtTimeZone = TZConvert.GetTimeZoneInfo(timeZone);
+            offsetMinutes = (int)gmtTimeZone.BaseUtcOffset.TotalMinutes;
+        }
+        var result = await _mediator.Send(new GetTransactionByDataQuery(year, month, offsetMinutes));
 
         var transactionResponse = new List<TransactionResponse>();
         foreach (var item in result)

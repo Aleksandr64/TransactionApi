@@ -8,14 +8,19 @@ using TransactionApi.Web.SwaggerOptions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo{ Title = "TransactionApi", Version = "v1"});
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "TransactionApi", 
+        Version = "v1",
+        Description = "An API to work with Transactions"
+    });
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
     c.OperationFilter<AddTimeZoneHeaderFilter>();
 });
 

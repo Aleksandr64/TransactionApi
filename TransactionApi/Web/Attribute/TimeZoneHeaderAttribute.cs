@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
+﻿using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.IdentityModel.Tokens;
 
 namespace TransactionApi.Web.Attribute;
 
@@ -10,13 +10,13 @@ public class TimeZoneHeaderAttribute : ActionFilterAttribute
         if (!context.ActionArguments.ContainsKey("timeZoneOffsetInMinutes") || context.ActionArguments["timeZoneOffsetInMinutes"] == null)
         {
             var requestHeaders = context.HttpContext.Request.Headers;
-            if (requestHeaders.ContainsKey("Time-Zone"))
+            if (requestHeaders.TryGetValue("Time-Zone", out var header))
             {
-                var clientTimeZoneOffset = requestHeaders["Time-Zone"].ToString();
+                var clientTimeZone = header.ToString();
 
-                if (int.TryParse(clientTimeZoneOffset, out int timeZoneOffsetInMinutes))
+                if (!clientTimeZone.IsNullOrEmpty())
                 {
-                    context.ActionArguments["timeZoneOffsetInMinutes"] = timeZoneOffsetInMinutes;
+                    context.ActionArguments["timeZone"] = clientTimeZone;
                 }
             }
         }
