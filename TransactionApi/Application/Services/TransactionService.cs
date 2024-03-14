@@ -1,17 +1,15 @@
 ﻿using System.Data;
 using System.Text.RegularExpressions;
 using ClosedXML.Excel;
-using GeoTimeZone;
 using MediatR;
 using Microsoft.IdentityModel.Tokens;
-using TimeZoneConverter;
 using TransactionApi.Application.Commands;
+using TransactionApi.Application.Helper;
 using TransactionApi.Application.Mapper;
 using TransactionApi.Application.Queries;
 using TransactionApi.Application.Services.Interface;
 using TransactionApi.Application.Validations;
 using TransactionApi.Domain.DTOs;
-using TransactionApi.Domain.Model;
 using TransactionApi.Domain.ResultModels;
 
 namespace TransactionApi.Application.Services;
@@ -26,9 +24,9 @@ public class TransactionService : ITransactionService
     }
 
     /// <inheritdoc />
-    public async Task<Result<string>> AddCsvFile(IFormFile file)
+    public async Task<Result<string>> AddTransactionsFromCsvFile(IFormFile file)
     {
-        var transactions = new List<Transaction>();
+        var transactions = new List<TransactionCSVRequest>();
         using var reader = new StreamReader(file.OpenReadStream());
         await reader.ReadLineAsync();
         while (await reader.ReadLineAsync() is { } line)
@@ -45,11 +43,7 @@ public class TransactionService : ITransactionService
                 continue;
             }
             
-            var location = entity.ClientLocation.Split(',');
-            
-            string tz = TimeZoneLookup.GetTimeZone(double.Parse(location[0]), double.Parse(location[1])).Result;
-            TimeZoneInfo timeZone = TZConvert.GetTimeZoneInfo(tz);
-            entity.TransactionDate = TimeZoneInfo.ConvertTime(entity.TransactionDate, timeZone);
+            entity.TransactionDate = TimeZoneHelper.ConvertTransactionTimeByLocation(entity.ClientLocation, entity.TransactionDate);
             
             transactions.Add(entity);
         }
@@ -74,7 +68,7 @@ public class TransactionService : ITransactionService
     }
 
     /// <inheritdoc />
-    public async Task<Result<FileResponse>> ExportTransactionInExel()
+    public async Task<Result<FileResponse>> ExportTransactionsInExel()
     {
         var result = await _mediator.Send(new GetAllTransactionQuery());
 
@@ -108,20 +102,14 @@ public class TransactionService : ITransactionService
                 fileResponse.Content = stream.ToArray();
             }
         }
-
         return new FileResult<FileResponse>(fileResponse);
     }
 
     /// <inheritdoc />
-    public async Task<Result<IEnumerable<TransactionResponse>>> GetTransactionByData(int? year, int? month, string? timeZone)
+    public async Task<Result<IEnumerable<TransactionResponse>>> GetTransactionByDateAndTimeZone(int day, int month, int year,  string? timeZone)
     {
-        int? offsetMinutes = null;
-        if (!timeZone.IsNullOrEmpty())
-        {
-            TimeZoneInfo gmtTimeZone = TZConvert.GetTimeZoneInfo(timeZone);
-            offsetMinutes = (int)gmtTimeZone.BaseUtcOffset.TotalMinutes;
-        }
-        var result = await _mediator.Send(new GetTransactionByDataQuery(year, month, offsetMinutes));
+        int? offsetMinutes = TimeZoneHelper.GetTimeZoneOffsetMinutes(timeZone);
+        var result = await _mediator.Send(new GetTransactionByDateQuery(day, month, year, offsetMinutes));
 
         var transactionResponse = new List<TransactionResponse>();
         foreach (var item in result)

@@ -7,21 +7,22 @@ using TransactionApi.Domain.Model;
 
 namespace TransactionApi.Application.Handlers;
 
-public class GetTransactionByDataHandler : IRequestHandler<GetTransactionByDataQuery, IEnumerable<Transaction>>
+public class GetTransactionByDateHandler : IRequestHandler<GetTransactionByDateQuery, IEnumerable<Transaction>>
 {
     private readonly DapperContext _context;
 
-    public GetTransactionByDataHandler(DapperContext context)
+    public GetTransactionByDateHandler(DapperContext context)
     {
         _context = context;
     }
     
-    public async Task<IEnumerable<Transaction>> Handle(GetTransactionByDataQuery request, CancellationToken cancellationToken)
+    public async Task<IEnumerable<Transaction>> Handle(GetTransactionByDateQuery request, CancellationToken cancellationToken)
     {
         string sql = @"SELECT *
                     FROM Transactions
-                    WHERE (@YearFilter IS NULL OR YEAR(TransactionDate) = @YearFilter)
-                        AND (@MonthFilter IS NULL OR MONTH(TransactionDate) = @MonthFilter)
+                    WHERE (@YearFilter = 0 OR YEAR(TransactionDate) = @YearFilter)
+                        AND (@MonthFilter = 0 OR MONTH(TransactionDate) = @MonthFilter)
+                        AND (@DayFilter = 0 OR DAY(TransactionDate) = @DayFilter)
                         AND (@TimeZoneOffsetFilter IS NULL OR DATEPART(TZOFFSET, TransactionDate) = @TimeZoneOffsetFilter)";
 
         using (var connection = _context.CreateConnection())
@@ -29,6 +30,7 @@ public class GetTransactionByDataHandler : IRequestHandler<GetTransactionByDataQ
             return await connection.QueryAsync<Transaction>(sql,
                 new
                 {
+                    DayFilter = request.Day,
                     MonthFilter = request.Month, 
                     YearFilter = request.Year,
                     TimeZoneOffsetFilter = request.TimeZoneOffsetInMinutes

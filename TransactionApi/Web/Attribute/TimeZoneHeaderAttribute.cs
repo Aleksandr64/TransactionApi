@@ -7,7 +7,7 @@ public class TimeZoneHeaderAttribute : ActionFilterAttribute
 {
     public override void OnActionExecuting(ActionExecutingContext context)
     {
-        if (!context.ActionArguments.ContainsKey("timeZoneOffsetInMinutes") || context.ActionArguments["timeZoneOffsetInMinutes"] == null)
+        if (!context.ActionArguments.ContainsKey("timeZone") || context.ActionArguments["timeZone"] == null)
         {
             var requestHeaders = context.HttpContext.Request.Headers;
             if (requestHeaders.TryGetValue("Time-Zone", out var header))

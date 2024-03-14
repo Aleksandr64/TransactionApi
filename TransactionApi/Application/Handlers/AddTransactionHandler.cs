@@ -15,8 +15,8 @@ public class AddTransactionHandler : IRequestHandler<AddTransactionCommand>
     }
     public async Task Handle(AddTransactionCommand request, CancellationToken cancellationToken)
     {
-        string sql = @"INSERT INTO Transactions (TransactionId, Name, Email, Amount, TransactionDate, ClientLocation) 
-                       VALUES (@TransactionId, @Name, @Email, @Amount, @TransactionDate, @ClientLocation)";
+        string sql = @"INSERT INTO Transactions (TransactionId, Name, Email, Amount, TransactionDate) 
+                       VALUES (@TransactionId, @Name, @Email, @Amount, @TransactionDate)";
 
         using (var connection = _context.CreateConnection())
         {

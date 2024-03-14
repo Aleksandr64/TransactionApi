@@ -6,9 +6,9 @@ namespace TransactionApi.Application.Mapper;
 
 public static class TransactionMapper
 {
-    public static Transaction MapTransactionFromCsv(this string[] values)
+    public static TransactionCSVRequest MapTransactionFromCsv(this string[] values)
     {
-        return new Transaction() 
+        return new TransactionCSVRequest() 
         {
             TransactionId = values[0],
             Name = values[1],

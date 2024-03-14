@@ -1,9 +1,10 @@
 ﻿using FluentValidation;
+using TransactionApi.Domain.DTOs;
 using TransactionApi.Domain.Model;
 
 namespace TransactionApi.Application.Validations;
 
-public class AddTransactionValidator : AbstractValidator<Transaction>
+public class AddTransactionValidator : AbstractValidator<TransactionCSVRequest>
 {
     public AddTransactionValidator()
     {

@@ -17,49 +17,48 @@ public class TransactionController : BaseApiController
     /// Exports transactions to Excel format.
     /// </summary>
     /// <remarks>
-    /// This endpoint allows exporting transactions to Excel format.
+    /// Export all transaction in xlsx with column: <br/>
+    /// Name, Address, Amount, DateTime
     /// </remarks>
     /// <returns>
-    /// Excel file containing transaction information.
+    /// Excel file.
     /// </returns>
     /// GET: api/Transaction/ExportTransactionInExel
     [HttpGet]
     public async Task<IActionResult> ExportTransactionInExel()
     {
-        var result = await _transactionService.ExportTransactionInExel();
+        var result = await _transactionService.ExportTransactionsInExel();
         return this.GetResponse(result);
     }
 
     /// <summary>
-    /// This endpoint returns a list of transactions in the endpoint by time zon, and date
+    /// Endpoint returns a list of transactions by time zon, and date.
     /// </summary>
     /// <remarks>
-    /// In endpoint you can in header add time zon current users, and  in url add time zon client. 
-    /// Also you can add Year, Month and Date in property to filter transaction by date.
+    /// In header add time zon current users, and in query add time zon client if you need.<br/>
+    /// If you add timeZone in query time zone from header will be ignore.
+    /// Year, Month and Date in query to filter transaction by date.
     /// </remarks>
-    /// <param name="year"></param>
-    /// <param name="month"></param>
-    /// <param name="timeZone"></param>
-    /// <returns></returns>
+    /// <returns>List Transaction</returns>
+    /// GET: api/Transaction/GetTransaction
     [HttpGet]
     [TimeZoneHeader]
-    public async Task<IActionResult> GetTransaction(int year, int month, string? timeZone)
+    public async Task<IActionResult> GetTransaction(int day, int month, int year,  string? timeZone)
     {
-        var result = await _transactionService.GetTransactionByData(year, month, timeZone);
+        var result = await _transactionService.GetTransactionByDateAndTimeZone(day, month, year, timeZone);
         return this.GetResponse(result);
     }
     
     /// <summary>
     /// Upload transaction data in csv
     /// </summary>
-    /// <param name="file"></param>
-    /// <returns></returns>
-    /// <response code="204">Returns the newly created item</response>
+    /// <response code="204">All data add in Db</response>
+    /// Post: api/Transaction/UploadCsv
     [HttpPost]
-    [ProducesResponseType(201)]
-    public async Task<IActionResult> Upload(IFormFile file)
+    [ProducesResponseType(204)]
+    public async Task<IActionResult> UploadCsv(IFormFile file)
     {
-        var result = await _transactionService.AddCsvFile(file);
+        var result = await _transactionService.AddTransactionsFromCsvFile(file);
         return this.GetResponse(result);
     }
 }

@@ -6,7 +6,7 @@ namespace TransactionApi.Application.Services.Interface;
 
 public interface ITransactionService
 {
-    public Task<Result<string>> AddCsvFile(IFormFile file);
-    public Task<Result<FileResponse>> ExportTransactionInExel();
-    public Task<Result<IEnumerable<TransactionResponse>>> GetTransactionByData(int? year, int? month, string? timeZone);
+    public Task<Result<string>> AddTransactionsFromCsvFile(IFormFile file);
+    public Task<Result<FileResponse>> ExportTransactionsInExel();
+    public Task<Result<IEnumerable<TransactionResponse>>> GetTransactionByDateAndTimeZone(int day, int month, int year,  string? timeZone);
 }

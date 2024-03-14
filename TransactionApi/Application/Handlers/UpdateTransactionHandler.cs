@@ -19,8 +19,7 @@ public class UpdateTransactionHandler : IRequestHandler<UpdateTransactionCommand
                        SET Name = @Name, 
                            Email = @Email, 
                            Amount = @Amount, 
-                           TransactionDate = @TransactionDate, 
-                           ClientLocation = @ClientLocation
+                           TransactionDate = @TransactionDate
                        WHERE TransactionId = @TransactionId";
 
         using (var connection = _context.CreateConnection())

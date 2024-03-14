@@ -4,9 +4,9 @@ using TransactionApi.Web.Attribute;
 
 namespace TransactionApi.Web.SwaggerOptions;
 
+/// <inheritdoc />
 public class AddTimeZoneHeaderFilter : IOperationFilter
 {
-    /// <inheritdoc />
     public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
         var hasTimeZoneHeaderAttribute = context.ApiDescription.ActionDescriptor.EndpointMetadata
