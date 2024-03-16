@@ -22,8 +22,7 @@ public class TransactionService : ITransactionService
     {
         _mediator = mediator;
     }
-
-    /// <inheritdoc />
+    
     public async Task<Result<string>> AddTransactionsFromCsvFile(IFormFile file)
     {
         var transactions = new List<TransactionCSVRequest>();
@@ -39,7 +38,6 @@ public class TransactionService : ITransactionService
             var validationResult = await new AddTransactionValidator().ValidateAsync(entity);
             if (!validationResult.IsValid)
             {
-                //TODO 207 Status code
                 continue;
             }
             
@@ -72,6 +70,11 @@ public class TransactionService : ITransactionService
     {
         var result = await _mediator.Send(new GetAllTransactionQuery());
 
+        if (result.IsNullOrEmpty())
+        {
+            return new NotFoundResult<FileResponse>("Not Found Data in Db");
+        }
+
         var dataTable = new DataTable();
         dataTable.Columns.AddRange(new DataColumn[]
         {
@@ -83,7 +86,7 @@ public class TransactionService : ITransactionService
 
         foreach (var item in result)
         {
-            dataTable.Rows.Add(item.Name, item.Email, item.Amount, item.TransactionDate.DateTime);
+            dataTable.Rows.Add(item.Name, item.Email, item.Amount.ToString("C", new System.Globalization.CultureInfo("en-US")), item.TransactionDate.DateTime);
         }
 
         var fileResponse = new FileResponse
@@ -109,8 +112,14 @@ public class TransactionService : ITransactionService
     public async Task<Result<IEnumerable<TransactionResponse>>> GetTransactionByDateAndTimeZone(int day, int month, int year,  string? timeZone)
     {
         int? offsetMinutes = TimeZoneHelper.GetTimeZoneOffsetMinutes(timeZone);
+        
         var result = await _mediator.Send(new GetTransactionByDateQuery(day, month, year, offsetMinutes));
 
+        if (!result.IsNullOrEmpty())
+        {
+            return new NotFoundResult<IEnumerable<TransactionResponse>>("Not Found Data in Db");
+        }
+        
         var transactionResponse = new List<TransactionResponse>();
         foreach (var item in result)
         {

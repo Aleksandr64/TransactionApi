@@ -23,8 +23,12 @@ public class TransactionController : BaseApiController
     /// <returns>
     /// Excel file.
     /// </returns>
+    /// <response code="200">The Excel file is returned to the frontend.</response>
+    /// <response code="404">Not found data in Db</response>
     /// GET: api/Transaction/ExportTransactionInExel
     [HttpGet]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(404)]
     public async Task<IActionResult> ExportTransactionInExel()
     {
         var result = await _transactionService.ExportTransactionsInExel();
@@ -40,9 +44,13 @@ public class TransactionController : BaseApiController
     /// Year, Month and Date in query to filter transaction by date.
     /// </remarks>
     /// <returns>List Transaction</returns>
+    /// <response code="200">The List with Transactions is returned to the frontend.</response>
+    /// <response code="400">Error! Failed reading file or file Empty</response>
     /// GET: api/Transaction/GetTransaction
     [HttpGet]
     [TimeZoneHeader]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(400)]
     public async Task<IActionResult> GetTransaction(int day, int month, int year,  string? timeZone)
     {
         var result = await _transactionService.GetTransactionByDateAndTimeZone(day, month, year, timeZone);
@@ -52,10 +60,15 @@ public class TransactionController : BaseApiController
     /// <summary>
     /// Upload transaction data in csv
     /// </summary>
-    /// <response code="204">All data add in Db</response>
+    /// <remarks>
+    ///Upload Csv file with: transaction_id, name, email, amount, transaction_date, client_location.
+    /// </remarks>
+    /// <response code="204">Data add in Db</response>
+    /// <response code="404">Not found data in Db</response>
     /// Post: api/Transaction/UploadCsv
     [HttpPost]
     [ProducesResponseType(204)]
+    [ProducesResponseType(404)]
     public async Task<IActionResult> UploadCsv(IFormFile file)
     {
         var result = await _transactionService.AddTransactionsFromCsvFile(file);

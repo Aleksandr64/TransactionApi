@@ -4,6 +4,7 @@ using TransactionApi.Domain.Model;
 
 namespace TransactionApi.Application.Validations;
 
+//Validation Transaction from CSV file.
 public class AddTransactionValidator : AbstractValidator<TransactionCSVRequest>
 {
     public AddTransactionValidator()

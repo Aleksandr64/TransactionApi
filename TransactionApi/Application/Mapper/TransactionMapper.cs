@@ -25,7 +25,7 @@ public static class TransactionMapper
         {
             Name = item.Name,
             Email = item.Email,
-            Amount = item.Amount,
+            Amount = item.Amount.ToString("C",new System.Globalization.CultureInfo("en-US")),
             TransactionDate = item.TransactionDate
         };
     }

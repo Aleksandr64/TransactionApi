@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace TransactionApi.Web.Attribute;
 
+//Attribute for get client time zone from header request.
 public class TimeZoneHeaderAttribute : ActionFilterAttribute
 {
     public override void OnActionExecuting(ActionExecutingContext context)

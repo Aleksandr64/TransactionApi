@@ -4,7 +4,7 @@ using TransactionApi.Web.Attribute;
 
 namespace TransactionApi.Web.SwaggerOptions;
 
-/// <inheritdoc />
+//Swagger header input
 public class AddTimeZoneHeaderFilter : IOperationFilter
 {
     public void Apply(OpenApiOperation operation, OperationFilterContext context)
