@@ -1,4 +1,6 @@
-﻿namespace TransactionApi.Domain.ResultModels;
+﻿using TransactionApi.Domain.DTOs;
+
+namespace TransactionApi.Domain.ResultModels;
 
 public class SuccessResult<T> : Result<T>
 {
@@ -10,6 +12,6 @@ public class SuccessResult<T> : Result<T>
     }
 
     public override ResultTypesEnum ResultType => ResultTypesEnum.Success;
-    public override List<string> Errors => new List<string>();
+    public override ErrorResponse Errors => new ErrorResponse();
     public override T Data => _data;
 }

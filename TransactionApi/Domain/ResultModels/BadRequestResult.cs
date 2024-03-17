@@ -1,4 +1,6 @@
-﻿namespace TransactionApi.Domain.ResultModels;
+﻿using TransactionApi.Domain.DTOs;
+
+namespace TransactionApi.Domain.ResultModels;
 
 public class BadRequestResult<T> : Result<T>
 {
@@ -15,7 +17,12 @@ public class BadRequestResult<T> : Result<T>
 
     public override ResultTypesEnum ResultType => ResultTypesEnum.BadRequest;
 
-    public override List<string> Errors =>  _error;
+    public override ErrorResponse Errors => new ErrorResponse()
+    {
+        Status = 400,
+        Message = "Bad Request",
+        Errors = _error
+    };
 
     public override T Data => default!;
 }

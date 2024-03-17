@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TransactionApi.Application.Services.Interface;
+using TransactionApi.Domain.DTOs;
 using TransactionApi.Web.Attribute;
 using TransactionApi.Web.Helpers;
 
@@ -28,7 +29,7 @@ public class TransactionController : BaseApiController
     /// GET: api/Transaction/ExportTransactionInExel
     [HttpGet]
     [ProducesResponseType(200)]
-    [ProducesResponseType(404)]
+    [ProducesResponseType(typeof(ErrorResponse),404)]
     public async Task<IActionResult> ExportTransactionInExel()
     {
         var result = await _transactionService.ExportTransactionsInExel();
@@ -50,7 +51,7 @@ public class TransactionController : BaseApiController
     [HttpGet]
     [TimeZoneHeader]
     [ProducesResponseType(200)]
-    [ProducesResponseType(400)]
+    [ProducesResponseType(typeof(ErrorResponse), 400)]
     public async Task<IActionResult> GetTransaction(int day, int month, int year,  string? timeZone)
     {
         var result = await _transactionService.GetTransactionByDateAndTimeZone(day, month, year, timeZone);
@@ -68,7 +69,7 @@ public class TransactionController : BaseApiController
     /// Post: api/Transaction/UploadCsv
     [HttpPost]
     [ProducesResponseType(204)]
-    [ProducesResponseType(404)]
+    [ProducesResponseType(typeof(ErrorResponse),404)]
     public async Task<IActionResult> UploadCsv(IFormFile file)
     {
         var result = await _transactionService.AddTransactionsFromCsvFile(file);

@@ -115,7 +115,7 @@ public class TransactionService : ITransactionService
         
         var result = await _mediator.Send(new GetTransactionByDateQuery(day, month, year, offsetMinutes));
 
-        if (!result.IsNullOrEmpty())
+        if (result.IsNullOrEmpty())
         {
             return new NotFoundResult<IEnumerable<TransactionResponse>>("Not Found Data in Db");
         }
