@@ -50,7 +50,7 @@ public class TransactionController : BaseApiController
     /// GET: api/Transaction/GetTransaction
     [HttpGet]
     [TimeZoneHeader]
-    [ProducesResponseType(200)]
+    [ProducesResponseType(typeof(List<TransactionResponse>),200)]
     [ProducesResponseType(typeof(ErrorResponse), 400)]
     public async Task<IActionResult> GetTransaction(int day, int month, int year,  string? timeZone)
     {

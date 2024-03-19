@@ -97,7 +97,7 @@ public class TransactionService : ITransactionService
 
         using (var wb = new XLWorkbook())
         {
-            var ws = wb.Worksheets.Add(dataTable, "Transaction");
+            var ws = wb.Worksheets.Add(dataTable, "Transactions");
 
             using (var stream = new MemoryStream())
             {
@@ -117,7 +117,7 @@ public class TransactionService : ITransactionService
 
         if (result.IsNullOrEmpty())
         {
-            return new NotFoundResult<IEnumerable<TransactionResponse>>("Not Found Data in Db");
+            return new NotFoundResult<IEnumerable<TransactionResponse>>("Not Found Transactions in Db");
         }
         
         var transactionResponse = new List<TransactionResponse>();
