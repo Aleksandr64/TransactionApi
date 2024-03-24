@@ -40,8 +40,10 @@ public class TransactionService : ITransactionService
             {
                 continue;
             }
-            
-            entity.TransactionDate = TimeZoneHelper.ConvertTransactionTimeByLocation(entity.ClientLocation, entity.TransactionDate);
+
+            entity.TimeZone = TimeZoneHelper.GetTimeZoneByLocation(entity.ClientLocation);
+
+            entity.TransactionDate = TimeZoneHelper.ConvertTransactionTimeByTimeZoneToUTC(entity.TransactionDate, entity.TimeZone);
             
             transactions.Add(entity);
         }
@@ -65,7 +67,7 @@ public class TransactionService : ITransactionService
         return new SuccessResult<string>(null);
     }
 
-    /// <inheritdoc />
+    
     public async Task<Result<FileResponse>> ExportTransactionsInExel()
     {
         var result = await _mediator.Send(new GetAllTransactionQuery());
@@ -86,7 +88,12 @@ public class TransactionService : ITransactionService
 
         foreach (var item in result)
         {
-            dataTable.Rows.Add(item.Name, item.Email, item.Amount.ToString("C", new System.Globalization.CultureInfo("en-US")), item.TransactionDate.DateTime);
+            dataTable.Rows.Add(
+                item.Name, 
+                item.Email, 
+                item.Amount.ToString("C", new System.Globalization.CultureInfo("en-US")), 
+                TimeZoneHelper.ConverTransactionTimeByTimeZone(item.TransactionDate, item.TimeZone)
+                );
         }
 
         var fileResponse = new FileResponse
@@ -107,13 +114,12 @@ public class TransactionService : ITransactionService
         }
         return new FileResult<FileResponse>(fileResponse);
     }
-
-    /// <inheritdoc />
-    public async Task<Result<IEnumerable<TransactionResponse>>> GetTransactionByDateAndTimeZone(int day, int month, int year,  string? timeZone)
+    
+    public async Task<Result<IEnumerable<TransactionResponse>>> GetTransactionByDateAndTimeZone(int day, int month, int year,  string timeZone)
     {
-        int? offsetMinutes = TimeZoneHelper.GetTimeZoneOffsetMinutes(timeZone);
+        int tz = TimeZoneHelper.GetTimeZoneOffsetMinutes(timeZone);
         
-        var result = await _mediator.Send(new GetTransactionByDateQuery(day, month, year, offsetMinutes));
+        var result = await _mediator.Send(new GetTransactionByDateQuery(day, month, year, tz));
 
         if (result.IsNullOrEmpty())
         {
@@ -127,5 +133,28 @@ public class TransactionService : ITransactionService
         }
 
         return new SuccessResult<IEnumerable<TransactionResponse>>(transactionResponse);
+    }
+
+    public async Task<Result<IEnumerable<TransactionResponse>>> GetTransactionByDateRange(long unixDateFrom, long unixDateTo, string timeZone)
+    {
+        int tz = TimeZoneHelper.GetTimeZoneOffsetMinutes(timeZone);
+        string dateFrom = TimeZoneHelper.ConvertUnixTimeStampToDateToString(unixDateFrom);
+        string dateTo = TimeZoneHelper.ConvertUnixTimeStampToDateToString(unixDateTo);
+        
+        var result = await _mediator.Send(new GetTransactionByDateRangeQuery(dateFrom, dateTo, tz));
+        
+        if (result.IsNullOrEmpty())
+        {
+            return new NotFoundResult<IEnumerable<TransactionResponse>>("Not Found Transactions in Db");
+        }
+        
+        var transactionResponse = new List<TransactionResponse>();
+        foreach (var item in result)
+        {
+            transactionResponse.Add(item.MapTransactionToResponse());
+        }
+
+        return new SuccessResult<IEnumerable<TransactionResponse>>(transactionResponse);
+        
     }
 }

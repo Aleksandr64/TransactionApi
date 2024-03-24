@@ -14,12 +14,12 @@ public static class TransactionMapper
             Name = values[1],
             Email = values[2],
             Amount = decimal.Parse(values[3], NumberStyles.Currency, CultureInfo.GetCultureInfo("en-US")), 
-            TransactionDate = DateTimeOffset.Parse(values[4], CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal),
+            TransactionDate = DateTime.Parse(values[4]),
             ClientLocation = values[5].Trim('"')
         };
     }
 
-    public static TransactionResponse MapTransactionToResponse(this Transaction item)
+    public static TransactionResponse MapTransactionToResponse(this TransactionDTO item)
     {
         return new TransactionResponse
         {

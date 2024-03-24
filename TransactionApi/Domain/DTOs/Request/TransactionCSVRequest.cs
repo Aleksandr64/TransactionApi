@@ -1,14 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿namespace TransactionApi.Domain.DTOs;
 
-namespace TransactionApi.Domain.Model;
-
-public class Transaction
+public class TransactionCSVRequest
 {
-    [Key]
     public string TransactionId { get; set; }
     public string Name { get; set; }
     public string Email { get; set; }
     public decimal Amount { get; set; }
-    public long TransactionDate { get; set; }
+    public DateTime TransactionDate { get; set; }
     public string TimeZone { get; set; }
+    public string ClientLocation { get; set; }
 }
