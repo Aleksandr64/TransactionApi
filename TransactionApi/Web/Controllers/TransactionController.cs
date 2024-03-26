@@ -65,17 +65,19 @@ public class TransactionController : BaseApiController
     /// <remarks>
     /// In header add time zon current users, and in query add time zon client if you need.<br/>
     /// If you add timeZone in query time zone from header will be ignore.
-    /// The date in the request must be was in UNIX Time stamp in second and mandatory in UTC.
+    /// The date in the request must be was in ISO Format in UTC and only Date (1970-01-01).
     /// </remarks>
     /// <returns>List Transaction</returns>
     /// <response code="200">The List with Transactions is returned to the frontend.</response>
+    /// /// /// <response code="400">The format of the Date is incorrect!</response>
     /// /// <response code="404">Not found data in Db</response>
     /// GET: api/Transaction/GetTransactionByDateRange
     [HttpGet]
     [TimeZoneHeader]
     [ProducesResponseType(typeof(List<TransactionResponse>),200)]
+    [ProducesResponseType(typeof(ErrorResponse), 400)]
     [ProducesResponseType(typeof(ErrorResponse), 404)]
-    public async Task<IActionResult> GetTransactionByDateRange(long dateFrom, long dateTo, string? timeZone)
+    public async Task<IActionResult> GetTransactionByDateRange(string dateFrom, string dateTo, string? timeZone)
     {
         var result = await _transactionService.GetTransactionByDateRange(dateFrom, dateTo, timeZone);
         return this.GetResponse(result);

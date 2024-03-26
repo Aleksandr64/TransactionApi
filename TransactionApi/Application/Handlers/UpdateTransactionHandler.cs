@@ -19,7 +19,7 @@ public class UpdateTransactionHandler : IRequestHandler<UpdateTransactionCommand
                        SET Name = @Name, 
                            Email = @Email, 
                            Amount = @Amount, 
-                           TransactionDate = DATEDIFF(second, '1970-01-01', @TransactionDate),
+                           TransactionDate = @TransactionDate,
                            TimeZone = @TimeZone
                        WHERE TransactionId = @TransactionId";
 

@@ -7,7 +7,7 @@ using TransactionApi.Domain.Model;
 
 namespace TransactionApi.Application.Handlers;
 
-public class GetAllTransactionHandler : IRequestHandler<GetAllTransactionQuery, IEnumerable<TransactionDTO>>
+public class GetAllTransactionHandler : IRequestHandler<GetAllTransactionQuery, IEnumerable<Transaction>>
 {
     private readonly DapperContext _context;
 
@@ -16,20 +16,20 @@ public class GetAllTransactionHandler : IRequestHandler<GetAllTransactionQuery, 
         _context = context;
     }
     
-    public async Task<IEnumerable<TransactionDTO>> Handle(GetAllTransactionQuery request, CancellationToken cancellationToken)
+    public async Task<IEnumerable<Transaction>> Handle(GetAllTransactionQuery request, CancellationToken cancellationToken)
     {
         string sql = @"SELECT 
                             TransactionId, 
                             Name, 
                             Email, 
                             Amount, 
-                            dbo.ConvertTimeStampToDateWithOffset(TransactionDate, 0) AS TransactionDate, 
+                            TransactionDate, 
                             TimeZone 
                         FROM Transactions";
 
         using (var connection = _context.CreateConnection())
         {
-            return await connection.QueryAsync<TransactionDTO>(sql);
+            return await connection.QueryAsync<Transaction>(sql);
         }
     }
 }

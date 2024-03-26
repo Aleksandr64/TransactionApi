@@ -1,14 +1,12 @@
 ﻿using Dapper;
-using DocumentFormat.OpenXml.Bibliography;
 using MediatR;
 using TransactionApi.Application.Queries;
 using TransactionApi.Database;
-using TransactionApi.Domain.DTOs;
 using TransactionApi.Domain.Model;
 
 namespace TransactionApi.Application.Handlers;
 
-public class GetTransactionByDateHandler : IRequestHandler<GetTransactionByDateQuery, IEnumerable<TransactionDTO>>
+public class GetTransactionByDateHandler : IRequestHandler<GetTransactionByDateQuery, IEnumerable<Transaction>>
 {
     private readonly DapperContext _context;
 
@@ -17,23 +15,23 @@ public class GetTransactionByDateHandler : IRequestHandler<GetTransactionByDateQ
         _context = context;
     }
     
-    public async Task<IEnumerable<TransactionDTO>> Handle(GetTransactionByDateQuery request, CancellationToken cancellationToken)
+    public async Task<IEnumerable<Transaction>> Handle(GetTransactionByDateQuery request, CancellationToken cancellationToken)
     {
         string sql = @"SELECT 
                             TransactionId, 
                             Name, 
                             Email, 
                             Amount, 
-                            dbo.ConvertTimeStampToDateWithOffset(TransactionDate, @TimeZoneFilter) AS TransactionDate, 
+                            CAST(TransactionDate AT TIME ZONE 'UTC' AT TIME ZONE @TimeZoneFilter AS datetime) AS TransactionDate, 
                             TimeZone 
                         FROM Transactions
-                        WHERE (@YearFilter = 0 OR YEAR(dbo.ConvertTimeStampToDateWithOffset(TransactionDate, @TimeZoneFilter)) = @YearFilter)
-                            AND (@MonthFilter = 0 OR MONTH(dbo.ConvertTimeStampToDateWithOffset(TransactionDate, @TimeZoneFilter)) = @MonthFilter)
-                            AND (@DayFilter = 0 OR DAY(dbo.ConvertTimeStampToDateWithOffset(TransactionDate, @TimeZoneFilter)) = @DayFilter)";
+                        WHERE (@YearFilter = 0 OR YEAR(CAST(TransactionDate AT TIME ZONE 'UTC' AT TIME ZONE @TimeZoneFilter AS datetime)) = @YearFilter)
+                            AND (@MonthFilter = 0 OR MONTH(CAST(TransactionDate AT TIME ZONE 'UTC' AT TIME ZONE @TimeZoneFilter AS datetime)) = @MonthFilter)
+                            AND (@DayFilter = 0 OR DAY(CAST(TransactionDate AT TIME ZONE 'UTC' AT TIME ZONE @TimeZoneFilter AS datetime)) = @DayFilter);";
 
         using (var connection = _context.CreateConnection())
         {
-            return await connection.QueryAsync<TransactionDTO>(sql,
+            return await connection.QueryAsync<Transaction>(sql,
                 new
                 {
                     DayFilter = request.Day,

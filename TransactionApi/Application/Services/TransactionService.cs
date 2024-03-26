@@ -117,7 +117,7 @@ public class TransactionService : ITransactionService
     
     public async Task<Result<IEnumerable<TransactionResponse>>> GetTransactionByDateAndTimeZone(int day, int month, int year,  string timeZone)
     {
-        int tz = TimeZoneHelper.GetTimeZoneOffsetMinutes(timeZone);
+        string tz = TimeZoneHelper.GetTimeZoneStandartName(timeZone);
         
         var result = await _mediator.Send(new GetTransactionByDateQuery(day, month, year, tz));
 
@@ -135,11 +135,16 @@ public class TransactionService : ITransactionService
         return new SuccessResult<IEnumerable<TransactionResponse>>(transactionResponse);
     }
 
-    public async Task<Result<IEnumerable<TransactionResponse>>> GetTransactionByDateRange(long unixDateFrom, long unixDateTo, string timeZone)
+    public async Task<Result<IEnumerable<TransactionResponse>>> GetTransactionByDateRange(string dateFrom, string dateTo, string timeZone)
     {
-        int tz = TimeZoneHelper.GetTimeZoneOffsetMinutes(timeZone);
-        string dateFrom = TimeZoneHelper.ConvertUnixTimeStampToDateToString(unixDateFrom);
-        string dateTo = TimeZoneHelper.ConvertUnixTimeStampToDateToString(unixDateTo);
+        string tz = TimeZoneHelper.GetTimeZoneStandartName(timeZone);
+        var checkDateFrom = TimeZoneHelper.CheckDateInString(dateFrom);
+        var checkDateTo = TimeZoneHelper.CheckDateInString(dateTo);
+
+        if (checkDateFrom || checkDateTo)
+        {
+            return new BadRequestResult<IEnumerable<TransactionResponse>>("The format of the Date is incorrect!");
+        }
         
         var result = await _mediator.Send(new GetTransactionByDateRangeQuery(dateFrom, dateTo, tz));
         

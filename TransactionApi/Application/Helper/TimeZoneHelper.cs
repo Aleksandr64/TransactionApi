@@ -1,4 +1,6 @@
-﻿using GeoTimeZone;
+﻿using System.Globalization;
+using System.Text.RegularExpressions;
+using GeoTimeZone;
 using TimeZoneConverter;
 using TransactionApi.Domain.DTOs;
 
@@ -6,33 +8,33 @@ namespace TransactionApi.Application.Helper;
 
 public static class TimeZoneHelper
 {
-    public static int GetTimeZoneOffsetMinutes(string timeZone)
+    public static string GetTimeZoneStandartName(string tz)
     {
-        TimeZoneInfo tz = TZConvert.GetTimeZoneInfo(timeZone);
-        return (int)tz.BaseUtcOffset.TotalMinutes;
+        return TZConvert.GetTimeZoneInfo(tz).Id;
     }
 
     public static string GetTimeZoneByLocation(string clientLocation)
     {
         var location = clientLocation.Split(',');
         string tz = TimeZoneLookup.GetTimeZone(double.Parse(location[0]), double.Parse(location[1])).Result;
-        return tz;
+        var test = TZConvert.GetTimeZoneInfo(tz);
+        return test.Id;
     }
-    public static DateTime ConvertTransactionTimeByTimeZoneToUTC(DateTime dateTime ,string timeZone)
-    {
-        TimeZoneInfo tz = TZConvert.GetTimeZoneInfo(timeZone);
-        return TimeZoneInfo.ConvertTimeToUtc(dateTime, tz);
-    }
-
-    public static DateTimeOffset ConverTransactionTimeByTimeZone(DateTimeOffset transactionDateTime, string tz)
+    public static DateTime ConvertTransactionTimeByTimeZoneToUTC(DateTime dateTime ,string tz)
     {
         TimeZoneInfo timeZone = TZConvert.GetTimeZoneInfo(tz);
-        return TimeZoneInfo.ConvertTime(transactionDateTime, timeZone);
+        return TimeZoneInfo.ConvertTimeToUtc(dateTime, timeZone);
     }
 
-    public static string ConvertUnixTimeStampToDateToString(long unixDateTime)
+    public static DateTime ConverTransactionTimeByTimeZone(DateTime transactionDateTime, string tz)
     {
-        DateTimeOffset dateTime = DateTimeOffset.FromUnixTimeSeconds(unixDateTime).UtcDateTime;
-        return dateTime.ToString("yyyy-MM-dd");
+        var dateTimeUtc = DateTime.SpecifyKind(transactionDateTime, DateTimeKind.Utc);
+        TimeZoneInfo timeZone = TZConvert.GetTimeZoneInfo(tz);
+        return TimeZoneInfo.ConvertTime(dateTimeUtc, timeZone);
+    }
+
+    public static bool CheckDateInString(string date)
+    {
+        return DateTime.TryParseExact(date, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out _);
     }
 }

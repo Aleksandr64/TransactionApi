@@ -19,7 +19,7 @@ public static class TransactionMapper
         };
     }
 
-    public static TransactionResponse MapTransactionToResponse(this TransactionDTO item)
+    public static TransactionResponse MapTransactionToResponse(this Transaction item)
     {
         return new TransactionResponse
         {

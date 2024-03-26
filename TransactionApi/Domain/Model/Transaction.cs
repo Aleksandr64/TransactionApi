@@ -9,6 +9,6 @@ public class Transaction
     public string Name { get; set; }
     public string Email { get; set; }
     public decimal Amount { get; set; }
-    public long TransactionDate { get; set; }
+    public DateTime TransactionDate { get; set; }
     public string TimeZone { get; set; }
 }
